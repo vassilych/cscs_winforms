@@ -1,0 +1,48 @@
+﻿
+function getFile(sender, load) {
+  data = OpenFile();
+  SetText("textBox1", data);
+}
+
+function getDataToFile(sender, load) {
+  text = GetText("textBox1");
+  SaveFile(text);
+}
+
+function question(sender, load) {
+  result = MessageBox("Do you want to click on one of the buttons?", "My App", "YesNoCancel");
+  SetText(lastAnswer, result);
+  lastAnswer = result;
+}
+
+function colorMe(sender, load) {
+  argb = PickColor();
+  setColor(sender, argb);
+}
+
+function newButtonClicked(sender, load) {
+  text = sender + " clicked";
+  SetText(lastAnswer, text);
+  lastAnswer = text;
+}
+
+function addNewWidget(sender, load) {
+  newWidgets++;
+  name = "newbutton" + newWidgets;
+  text = "New Button" + newWidgets;
+  AddWidget(name, "button", text, x, y, width, height, "newButtonClicked");
+  x += 100;
+}
+
+lastAnswer = "Answer";
+width = 90;
+height = 28;
+x = 110;
+y = 60;
+newWidgets= 0;
+
+AddButtonHandler("Open File",    "getFile");
+AddButtonHandler("Save File",    "getDataToFile");
+AddButtonHandler("Color Me",     "colorMe");
+AddButtonHandler("Ask Question", "question");
+AddButtonHandler("Create New",   "addNewWidget");
