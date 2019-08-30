@@ -20,8 +20,7 @@ namespace WindowsFormsCSCS
             Application.SetCompatibleTextRenderingDefault(false);
 
             CSCS_GUI.TheForm = new Form1();
-            string scriptFilename = "../../CSCS/wingui.cscs";
-            CSCS_GUI.RunScript(scriptFilename);
+            CSCS_GUI.RunScript("../../CSCS/wingui.cscs");
 
             Application.Run(CSCS_GUI.TheForm);
         }

@@ -48,7 +48,6 @@
             this.button1.TabIndex = 0;
             this.button1.Text = "Open File";
             this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // button3
             // 
@@ -58,7 +57,6 @@
             this.button3.TabIndex = 2;
             this.button3.Text = "Ask Question";
             this.button3.UseVisualStyleBackColor = true;
-            this.button3.Click += new System.EventHandler(this.Button3_Click);
             // 
             // label1
             // 
@@ -68,7 +66,6 @@
             this.label1.Size = new System.Drawing.Size(60, 22);
             this.label1.TabIndex = 3;
             this.label1.Text = "Answer";
-            this.label1.Click += new System.EventHandler(this.Label1_Click);
             // 
             // button4
             // 
@@ -78,7 +75,6 @@
             this.button4.TabIndex = 4;
             this.button4.Text = "Color Me";
             this.button4.UseVisualStyleBackColor = true;
-            this.button4.Click += new System.EventHandler(this.Button4_Click);
             // 
             // textBox1
             // 
@@ -88,7 +84,6 @@
             this.textBox1.Size = new System.Drawing.Size(551, 287);
             this.textBox1.TabIndex = 5;
             this.textBox1.Text = "dss";
-            this.textBox1.TextChanged += new System.EventHandler(this.TextBox1_TextChanged);
             // 
             // button2
             // 
@@ -98,7 +93,6 @@
             this.button2.TabIndex = 6;
             this.button2.Text = "Save File";
             this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.Button2_Click_1);
             // 
             // button5
             // 
@@ -108,7 +102,6 @@
             this.button5.TabIndex = 7;
             this.button5.Text = "Create New";
             this.button5.UseVisualStyleBackColor = true;
-            this.button5.Click += new System.EventHandler(this.Button5_Click);
             // 
             // Form1
             // 

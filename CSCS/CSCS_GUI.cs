@@ -14,6 +14,7 @@ namespace WindowsFormsCSCS
     public class CSCS_GUI
     {
         public static Form1 TheForm;
+        public static Action<string, string> OnWidgetClick;
 
         public static void Init()
         {
@@ -35,6 +36,40 @@ namespace WindowsFormsCSCS
             ParserFunction.RegisterFunction("MessageBox",       new MessageBoxFunction());
         }
 
+        public static Control GetWidget(string name)
+        {
+            if (TheForm == null)
+            {
+                return null;
+            }
+
+            foreach(var item in TheForm.Controls)
+            {
+                Control control = item as Control;
+                if (control == null)
+                {
+                    continue;
+                }
+                if (control.Name == name)
+                {
+                    return control;
+                }
+            }
+            foreach (var item in TheForm.Controls)
+            {
+                Control control = item as Control;
+                if (control == null)
+                {
+                    continue;
+                }
+                if (control.Text == name)
+                {
+                    return control;
+                }
+            }
+            return null;
+        }
+
         public static void RunScript(string fileName)
         {
             Init();
@@ -53,6 +88,45 @@ namespace WindowsFormsCSCS
                 throw;
             }
         }
+        public static bool AddActionHandler(string name, string action)
+        {
+            var widget = CSCS_GUI.GetWidget(name);
+            if (widget == null)
+            {
+                return false;
+            }
+
+            if (s_actionHandlers == null)
+            {
+                s_actionHandlers = new Dictionary<string, string>();
+            }
+
+            s_actionHandlers[name] = action;
+            widget.Click += new System.EventHandler(Widget_Click);
+
+            return true;
+        }
+
+        private static void Widget_Click(object sender, EventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null)
+            {
+                return;
+            }
+
+            string funcName;
+            if (s_actionHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.ToString()));
+            }
+            else if (s_actionHandlers.TryGetValue(widget.Text, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Text), new Variable(e.ToString()));
+            }
+        }
+
+        static Dictionary<string, string> s_actionHandlers;
     }
 
     class AddButtonHandlerFunction : ParserFunction
@@ -67,28 +141,8 @@ namespace WindowsFormsCSCS
             string buttonName   = Utils.GetSafeString(args, 0);
             string buttonAction = Utils.GetSafeString(args, 1);
 
-            AddButtonHandler(buttonName, buttonAction);
-            return new Variable(buttonName);
-        }
-
-        public static void AddButtonHandler(string buttonName, string buttonAction)
-        {
-            if (s_buttonHandlers == null)
-            {
-                s_buttonHandlers = new Dictionary<string, string>();
-                Form1.OnButtonClick += ButtonHandler;
-            }
-
-            s_buttonHandlers[buttonName] = buttonAction;
-        }
-
-        public static void ButtonHandler(string sender, string load)
-        {
-            string funcName;
-            if (s_buttonHandlers.TryGetValue(sender, out funcName))
-            {
-                CustomFunction.Run(funcName, new Variable(sender), new Variable(load));
-            }
+            bool registerAction = CSCS_GUI.AddActionHandler(buttonName, buttonAction);
+            return new Variable(registerAction);
         }
     }
 
@@ -177,7 +231,7 @@ namespace WindowsFormsCSCS
             Utils.CheckArgs(args.Count, 1, m_name);
 
             var widgetName = Utils.GetSafeString(args, 0);
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -196,7 +250,7 @@ namespace WindowsFormsCSCS
             var widgetName = Utils.GetSafeString(args, 0);
             var text = Utils.GetSafeString(args, 1);
 
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -229,12 +283,15 @@ namespace WindowsFormsCSCS
                 case "button":
                     var button = new Button();
                     button.UseVisualStyleBackColor = true;
-                    if (!string.IsNullOrWhiteSpace(callback))
-                    {
-                        button.Click += new System.EventHandler(Button_Click);
-                        AddButtonHandlerFunction.AddButtonHandler(widgetName, callback);
-                    }
                     control = button;
+                    break;
+                case "label":
+                    var label = new Label();
+                    control = label;
+                    break;
+                case "textbox":
+                    var textBox = new TextBox();
+                    control = textBox;
                     break;
             }
 
@@ -247,15 +304,14 @@ namespace WindowsFormsCSCS
             control.Name = widgetName;
             control.Text = text;
             control.Size   = new System.Drawing.Size(width, height);
-            control.Click += new System.EventHandler(Button_Click);
-
             CSCS_GUI.TheForm.Controls.Add(control);
-            return new Variable(true);
-        }
 
-        private static void Button_Click(object sender, EventArgs e)
-        {
-            Form1.OnButtonClick?.Invoke(((System.Windows.Forms.Button)sender).Name, "button");
+            if (!string.IsNullOrWhiteSpace(callback))
+            {
+                CSCS_GUI.AddActionHandler(control.Name, callback);
+            }
+
+            return new Variable(true);
         }
     }
 
@@ -270,7 +326,7 @@ namespace WindowsFormsCSCS
             var x = Utils.GetSafeInt(args, 1);
             var y = Utils.GetSafeInt(args, 2);
 
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -292,7 +348,7 @@ namespace WindowsFormsCSCS
             var x = Utils.GetSafeInt(args, 1);
             var y = Utils.GetSafeInt(args, 2);
 
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -314,7 +370,7 @@ namespace WindowsFormsCSCS
             var x = Utils.GetSafeInt(args, 1);
             var y = Utils.GetSafeInt(args, 2);
 
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -336,13 +392,18 @@ namespace WindowsFormsCSCS
             Utils.CheckArgs(args.Count, 2, m_name);
 
             var widgetName = Utils.GetSafeString(args, 0);
+            var widget = args[0];
+            if (widget.Object != null && widget.Object is Control)
+            {
+                widgetName = ((Control)widget.Object).Name;
+            }
             int argb = Utils.GetSafeInt(args, 1);
 
             return SetColor(widgetName, argb);
         }
         public static Variable SetColor(string widgetName, int argb)
         {
-            var widget = Form1.GetWidget(widgetName);
+            var widget = CSCS_GUI.GetWidget(widgetName);
 
             if (widget == null)
             {
