@@ -155,8 +155,6 @@ namespace WindowsFormsCSCS
 
     class AddButtonHandlerFunction : ParserFunction
     {
-        static Dictionary<string, string> s_buttonHandlers;
-
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
