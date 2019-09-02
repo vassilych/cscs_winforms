@@ -32,6 +32,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Resources\pugIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -58,7 +61,7 @@
     <Compile Include="CSCS\Functions.OS.cs" />
     <Compile Include="CSCS\Functions.Standalone.cs" />
     <Compile Include="CSCS\Functions.Utils.cs" />
-    <Compile Include="CSCS\CSCS_GUI.cs" />
+    <Compile Include="CSCS_GUI.cs" />
     <Compile Include="CSCS\Interpreter.cs" />
     <Compile Include="CSCS\Interpreter.Standalone.cs" />
     <Compile Include="CSCS\Parser.cs" />
@@ -85,14 +88,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
-    <Compile Include="Properties\Resources.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DependentUpon>Resources.resx</DependentUpon>
-    </Compile>
-    <None Include="CSCS\wingui.cscs" />
+    <None Include="scripts\wingui.cscs" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -105,6 +103,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Resources\pugIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

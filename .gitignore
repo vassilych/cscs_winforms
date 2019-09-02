@@ -1,0 +1,14 @@
+
+*.cache
+*.exe
+*.ide
+*.ide-shm
+*.ide-wal
+*.lock
+*.pdb
+.vs/WindowsFormsCSCS/v16/.suo
+obj/Debug/*
+obj/Release/*
+bin/Debug/*
+bin/Release/*
+

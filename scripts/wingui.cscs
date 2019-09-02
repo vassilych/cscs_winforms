@@ -1,0 +1,69 @@
+﻿
+function getFile(sender, load) {
+  data = OpenFile();
+  SetText("textBox1", data);
+}
+
+function getDataToFile(sender, load) {
+  text = GetText("textBox1");
+  SaveFile(text);
+}
+
+function question(sender, load) {
+  result = MessageBox("Do you want to click on one of the buttons?", "My App", "YesNoCancel");
+  SetText(lastAnswer, result);
+  lastAnswer = result;
+}
+
+function colorMe(sender, load) {
+  argb = PickColor();
+  setColor(sender, argb);
+}
+
+function newButtonClicked(sender, load) {
+  text = sender + " clicked";
+  SetText(lastAnswer, text);
+  lastAnswer = text;
+}
+
+function addNewWidget(sender, load) {
+  newWidgets++;
+  name = "newbutton" + newWidgets;
+  text = "New Button" + newWidgets;
+  AddWidget(name, "button", text, x, y, width, height, "newButtonClicked");
+  x += 100;
+}
+
+function removeNewWidget(sender, load) {
+  if (newWidgets <= 0) {
+    return;
+  }
+  RemoveWidget("newbutton" + newWidgets);
+  x -= 100;
+  newWidgets--;
+}
+
+function showHideWidget(sender, load) {
+  if (showCounter % 2 == 1) {
+	ShowWidget("button6");
+  } else {
+	HideWidget("button6");
+  }
+  showCounter++;
+}
+
+lastAnswer = "Answer";
+width = 90;
+height = 28;
+x = 10;
+y = 60;
+newWidgets= 0;
+showCounter = 0;
+
+AddButtonHandler("Open File",    "getFile");
+AddButtonHandler("Save File",    "getDataToFile");
+AddButtonHandler("Color Me",     "colorMe");
+AddButtonHandler("Ask Question", "question");
+AddButtonHandler("Create New",   "addNewWidget");
+AddButtonHandler("Remove",       "removeNewWidget");
+AddButtonHandler("Show/Hide",    "showHideWidget");
