@@ -75,26 +75,36 @@ namespace WindowsFormsCSCS
             foreach (var item in TheForm.Controls)
             {
                 Control control = item as Control;
-                string clickAction = control.Name + "_Clicked";
-                string preClickAction = control.Name + "_PreClicked";
-                string doubleClickAction = control.Name + "_DoubleClicked";
-                string keyDownAction = control.Name + "_KeyDown";
-                string keyUpAction = control.Name + "_KeyUp";
-                string keyPressAction = control.Name + "_KeyPress";
-                string textChangeAction = control.Name + "_TextChange";
-                string mouseHoverAction = control.Name + "_MouseHover";
-
-                AddActionHandler(control.Name, clickAction, control);
-                AddPreActionHandler(control.Name, preClickAction, control);
-                AddDoubleClickHandler(control.Name, doubleClickAction, control);
-                AddKeyDownHandler(control.Name, keyDownAction, control);
-                AddKeyUpHandler(control.Name, keyUpAction, control);
-                AddKeyPressHandler(control.Name, keyPressAction, control);
-                AddTextChangedHandler(control.Name, textChangeAction, control);
-                AddMouseHoverHandler(control.Name, mouseHoverAction, control);
+                AddActions(control);
             }
         }
 
+        public static void AddActions(Control control, string name = "")
+        {
+            if (control == null)
+            {
+                return;
+            }
+            name = string.IsNullOrWhiteSpace(name) ? control.Name : name;
+
+            string clickAction = name + "_Clicked";
+            string preClickAction = name + "_PreClicked";
+            string doubleClickAction = name + "_DoubleClicked";
+            string keyDownAction = name + "_KeyDown";
+            string keyUpAction = name + "_KeyUp";
+            string keyPressAction = name + "_KeyPress";
+            string textChangeAction = name + "_TextChange";
+            string mouseHoverAction = name + "_MouseHover";
+
+            AddActionHandler(control.Name, clickAction, control);
+            AddPreActionHandler(control.Name, preClickAction, control);
+            AddDoubleClickHandler(control.Name, doubleClickAction, control);
+            AddKeyDownHandler(control.Name, keyDownAction, control);
+            AddKeyUpHandler(control.Name, keyUpAction, control);
+            AddKeyPressHandler(control.Name, keyPressAction, control);
+            AddTextChangedHandler(control.Name, textChangeAction, control);
+            AddMouseHoverHandler(control.Name, mouseHoverAction, control);
+        }
         public static Control GetWidget(string name)
         {
             if (TheForm == null)
@@ -619,6 +629,10 @@ namespace WindowsFormsCSCS
                     button.UseVisualStyleBackColor = true;
                     control = button;
                     break;
+                case "checkbox":
+                    var checkbox = new CheckBox();
+                    control = checkbox;
+                    break;
                 case "label":
                     var label = new Label();
                     control = label;
@@ -640,10 +654,7 @@ namespace WindowsFormsCSCS
             control.Size   = new System.Drawing.Size(width, height);
             CSCS_GUI.TheForm.Controls.Add(control);
 
-            if (!string.IsNullOrWhiteSpace(callback))
-            {
-                CSCS_GUI.AddActionHandler(control.Name, callback, control);
-            }
+            CSCS_GUI.AddActions(control, callback);
 
             return new Variable(true);
         }

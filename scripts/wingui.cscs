@@ -39,7 +39,7 @@ function button5_Clicked(sender, load) {
   newWidgets++;
   name = "newbutton" + newWidgets;
   text = "New Button" + newWidgets;
-  AddWidget(name, "button", text, x, y, width, height, "newButtonClicked");
+  AddWidget(name, "button", text, x, y, width, height, "newButton");
   x += 100;
 }
 
@@ -128,6 +128,11 @@ function textbox2_TextChange(sender, load) {
   }
 }
 
+function newButton_Clicked(sender, load) {
+  text = sender + " clicked";
+  SetText(answerLabel, text);
+}
+
 function combobox1_Clicked(sender, load) {
   if (!refresh) {
     return;
@@ -141,10 +146,8 @@ function combobox1_PreClicked(sender, load) {
   if (!refresh) {
     return;
   }
-   SetText(answerLabel, sender + " is pre-clicked");
-   if (true) {
-    makeSense = true;
-  }
+   c = 22;
+   SetText(answerLabel, sender + " is pre-clicked, c=" + c);
 }
 
 function checkBox1_Clicked(sender, load) {
@@ -166,6 +169,7 @@ newWidgets= 0;
 showCounter = 0;
 makeSense = false;
 refresh = false;
+c = 0;
 
 comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
 AddWidgetData(comboBox1, comboItems);
