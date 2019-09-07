@@ -1,32 +1,41 @@
 ﻿
-function getFile(sender, load) {
+function button1_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   data = OpenFile();
   SetText("textBox1", data);
 }
 
-function getDataToFile(sender, load) {
+function button2_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   text = GetText("textBox1");
   SaveFile(text);
 }
 
-function question(sender, load) {
-  result = MessageBox("Do you want to click on one of the buttons?", "My App", "YesNoCancel");
-  SetText(lastAnswer, result);
-  lastAnswer = result;
+function button3_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  result = MessageBox("Are you happy?", "My Great App", "YesNoCancel");
+  SetText(answerLabel, result);
+  SetText("button6", result);
 }
 
-function colorMe(sender, load) {
+function button4_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   argb = PickColor();
   setColor(sender, argb);
 }
 
-function newButtonClicked(sender, load) {
-  text = sender + " clicked";
-  SetText(lastAnswer, text);
-  lastAnswer = text;
-}
-
-function addNewWidget(sender, load) {
+function button5_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   newWidgets++;
   name = "newbutton" + newWidgets;
   text = "New Button" + newWidgets;
@@ -34,7 +43,10 @@ function addNewWidget(sender, load) {
   x += 100;
 }
 
-function removeNewWidget(sender, load) {
+function button6_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   if (newWidgets <= 0) {
     return;
   }
@@ -43,7 +55,10 @@ function removeNewWidget(sender, load) {
   newWidgets--;
 }
 
-function showHideWidget(sender, load) {
+function button7_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
   if (showCounter % 2 == 1) {
 	ShowWidget("button6");
   } else {
@@ -52,18 +67,111 @@ function showHideWidget(sender, load) {
   showCounter++;
 }
 
-lastAnswer = "Answer";
+function button8_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  msg = "Button name [" + sender + "] with text: [" + GetText(sender) + "]";
+  MessageBox(msg, "My Great App", "OkCancel");
+}
+
+function button8_PreClicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  SetText(answerLabel, sender + " pre clicked");
+}
+
+function button9_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  text = GetText("textBox2");
+  comboItems.Add(text);
+  AddWidgetData(comboBox1, text);
+  SetText("comboBox1", text);
+}
+
+function label1_DoubleClicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  SetText(answerLabel, sender + ": I am double clicked");
+}
+
+function button9_MouseHover(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  SetText(answerLabel, sender + ": MouseHover Here!!!");
+}
+
+function textbox2_KeyPress(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  SetText(answerLabel, sender + " pressed: " + load);
+}
+function textbox2_TextChange(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  text = GetText(sender);
+  for (item : comboItems) {
+    if (item.StartsWith(text)) {
+	  SetText("comboBox1", item);
+	  break;
+	}
+  }
+}
+
+comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
+AddWidgetData(comboBox1, comboItems);
+SetText("comboBox1", "diez");
+
+function combobox1_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  if (!makeSense) {
+    return;
+  }
+}
+
+function combobox1_PreClicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+   SetText(answerLabel, sender + " is pre-clicked");
+   if (true) {
+    makeSense = true;
+  }
+}
+
+function checkBox1_Clicked(sender, load) {
+	refresh = load;
+	if (refresh) {
+	  SetText(answerLabel, sender + " Is True!");
+	} else {
+	  SetText(answerLabel, sender + " Is False!");
+	}
+}
+
+answerLabel = "label1";
 width = 90;
 height = 28;
 x = 10;
 y = 60;
+
 newWidgets= 0;
 showCounter = 0;
+makeSense = false;
+refresh = false;
 
-AddButtonHandler("Open File",    "getFile");
-AddButtonHandler("Save File",    "getDataToFile");
-AddButtonHandler("Color Me",     "colorMe");
-AddButtonHandler("Ask Question", "question");
-AddButtonHandler("Create New",   "addNewWidget");
-AddButtonHandler("Remove",       "removeNewWidget");
-AddButtonHandler("Show/Hide",    "showHideWidget");
+//AddButtonHandler("Open File",     "getFile");
+//AddButtonHandler("Save File",     "getDataToFile");
+//AddButtonHandler("Color Me",      "colorMe");
+//AddButtonHandler("Ask Question",  "question");
+//AddButtonHandler("Create New",    "addNewWidget");
+//AddButtonHandler("Remove",        "removeNewWidget");
+//AddButtonHandler("Show/Hide",     "showHideWidget");

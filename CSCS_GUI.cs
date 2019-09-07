@@ -13,30 +13,42 @@ namespace WindowsFormsCSCS
 {
     public class CSCS_GUI
     {
-        public static Form1 TheForm;
-        public static Action<string, string> OnWidgetClick;
+        public static Form1 TheForm { get; set; }
+        //public static Action<string, string> OnWidgetClick;
+
+        static Dictionary<string, string> s_actionHandlers      = new Dictionary<string, string>();
+        static Dictionary<string, string> s_preActionHandlers   = new Dictionary<string, string>();
+        static Dictionary<string, string> s_doubleClickHandlers = new Dictionary<string, string>();
+        static Dictionary<string, string> s_keyDownHandlers     = new Dictionary<string, string>();
+        static Dictionary<string, string> s_keyUpHandlers       = new Dictionary<string, string>();
+        static Dictionary<string, string> s_keyPressHandlers    = new Dictionary<string, string>();
+        static Dictionary<string, string> s_textChangedHandlers = new Dictionary<string, string>();
+        static Dictionary<string, string> s_mouseHoverHandlers  = new Dictionary<string, string>();
 
         public static void Init()
         {
-            ParserFunction.RegisterFunction("OpenFile",         new OpenFileFunction());
-            ParserFunction.RegisterFunction("SaveFile",         new SaveFileFunction());
+            ParserFunction.RegisterFunction("OpenFile",           new OpenFileFunction());
+            ParserFunction.RegisterFunction("SaveFile",           new SaveFileFunction());
 
-            ParserFunction.RegisterFunction("AddButtonHandler", new AddButtonHandlerFunction());
-            ParserFunction.RegisterFunction("PickColor",        new PickColorFunction());
-            ParserFunction.RegisterFunction("SetColor",         new ColorWidgetFunction());
+            ParserFunction.RegisterFunction("AddButtonHandler",   new AddButtonHandlerFunction());
+            ParserFunction.RegisterFunction("PickColor",          new PickColorFunction());
+            ParserFunction.RegisterFunction("SetColor",           new ColorWidgetFunction());
 
-            ParserFunction.RegisterFunction("GetText",          new GetTextWidgetFunction());
-            ParserFunction.RegisterFunction("SetText",          new SetTextWidgetFunction());
+            ParserFunction.RegisterFunction("AddWidget",          new AddWidgetFunction());
+            ParserFunction.RegisterFunction("RemoveWidget",       new RemoveWidgetFunction());
+            ParserFunction.RegisterFunction("MoveWidget",         new MoveWidgetFunction());
+            ParserFunction.RegisterFunction("ShowWidget",         new ShowHideWidgetFunction(true));
+            ParserFunction.RegisterFunction("HideWidget",         new ShowHideWidgetFunction(false));
+            ParserFunction.RegisterFunction("ResizeWidget",       new ResizeWidgetFunction());
+            ParserFunction.RegisterFunction("GetWidgetSize",      new GetWidgetSizeFunction());
 
-            ParserFunction.RegisterFunction("AddWidget",        new AddWidgetFunction());
-            ParserFunction.RegisterFunction("RemoveWidget",     new RemoveWidgetFunction());
-            ParserFunction.RegisterFunction("MoveWidget",       new MoveWidgetFunction());
-            ParserFunction.RegisterFunction("ShowWidget",       new ShowHideWidgetFunction(true));
-            ParserFunction.RegisterFunction("HideWidget",       new ShowHideWidgetFunction(false));
-            ParserFunction.RegisterFunction("ResizeWidget",     new ResizeWidgetFunction());
-            ParserFunction.RegisterFunction("GetWidgetSize",    new GetWidgetSizeFunction());
+            ParserFunction.RegisterFunction("GetText",            new GetTextWidgetFunction());
+            ParserFunction.RegisterFunction("SetText",            new SetTextWidgetFunction());
+            ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
 
-            ParserFunction.RegisterFunction("MessageBox",       new MessageBoxFunction());
+            ParserFunction.RegisterFunction("MessageBox",         new MessageBoxFunction());
+
+            AddActions();
         }
 
         public static void RunScript(string fileName)
@@ -58,6 +70,31 @@ namespace WindowsFormsCSCS
             }
         }
 
+        public static void AddActions()
+        {
+            foreach (var item in TheForm.Controls)
+            {
+                Control control = item as Control;
+                string clickAction = control.Name + "_Clicked";
+                string preClickAction = control.Name + "_PreClicked";
+                string doubleClickAction = control.Name + "_DoubleClicked";
+                string keyDownAction = control.Name + "_KeyDown";
+                string keyUpAction = control.Name + "_KeyUp";
+                string keyPressAction = control.Name + "_KeyPress";
+                string textChangeAction = control.Name + "_TextChange";
+                string mouseHoverAction = control.Name + "_MouseHover";
+
+                AddActionHandler(control.Name, clickAction, control);
+                AddPreActionHandler(control.Name, preClickAction, control);
+                AddDoubleClickHandler(control.Name, doubleClickAction, control);
+                AddKeyDownHandler(control.Name, keyDownAction, control);
+                AddKeyUpHandler(control.Name, keyUpAction, control);
+                AddKeyPressHandler(control.Name, keyPressAction, control);
+                AddTextChangedHandler(control.Name, textChangeAction, control);
+                AddMouseHoverHandler(control.Name, mouseHoverAction, control);
+            }
+        }
+
         public static Control GetWidget(string name)
         {
             if (TheForm == null)
@@ -68,10 +105,6 @@ namespace WindowsFormsCSCS
             foreach(var item in TheForm.Controls)
             {
                 Control control = item as Control;
-                if (control == null)
-                {
-                    continue;
-                }
                 if (control.Name == name)
                 {
                     return control;
@@ -80,10 +113,6 @@ namespace WindowsFormsCSCS
             foreach (var item in TheForm.Controls)
             {
                 Control control = item as Control;
-                if (control == null)
-                {
-                    continue;
-                }
                 if (control.Text == name)
                 {
                     return control;
@@ -92,26 +121,238 @@ namespace WindowsFormsCSCS
             return null;
         }
 
-        public static bool AddActionHandler(string name, string action)
+        public static string GetWidgetName(string text)
         {
-            var widget = CSCS_GUI.GetWidget(name);
-            if (widget == null)
+            if (TheForm == null)
             {
-                return false;
+                return "";
             }
 
-            if (s_actionHandlers == null)
+            foreach (var item in TheForm.Controls)
             {
-                s_actionHandlers = new Dictionary<string, string>();
+                Control control = item as Control;
+                if (control.Text == text)
+                {
+                    return control.Name;
+                }
             }
-
-            s_actionHandlers[name] = action;
-            widget.Click += new System.EventHandler(Widget_Click);
-
-            return true;
+            return text;
         }
 
+        public static bool AddActionHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_actionHandlers[GetWidgetName(name)] = action;
+            widget.Click += new System.EventHandler(Widget_Click);
+            return true;
+        }
+        public static bool AddPreActionHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_preActionHandlers[GetWidgetName(name)] = action;
+            widget.MouseDown += new MouseEventHandler(Widget_PreClick);
+            return true;
+        }
+        public static bool AddDoubleClickHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_doubleClickHandlers[GetWidgetName(name)] = action;
+            widget.DoubleClick += new System.EventHandler(Widget_DoubleClick);
+            return true;
+        }
+        public static bool AddKeyDownHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_keyDownHandlers[GetWidgetName(name)] = action;
+            widget.KeyDown += new KeyEventHandler(Widget_KeyDown);
+            return true;
+        }
+        public static bool AddKeyUpHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_keyUpHandlers[GetWidgetName(name)] = action;
+            widget.KeyDown += new KeyEventHandler(Widget_KeyUp);
+            return true;
+        }
+        public static bool AddKeyPressHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_keyPressHandlers[GetWidgetName(name)] = action;
+            widget.KeyPress += new KeyPressEventHandler(Widget_KeyPress);
+            return true;
+        }
+        public static bool AddTextChangedHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+
+            s_textChangedHandlers[GetWidgetName(name)] = action;
+            widget.TextChanged += new EventHandler(Widget_TextChanged);
+            return true;
+        }
+        public static bool AddMouseHoverHandler(string name, string action, Control widget = null)
+        {
+            if (widget == null)
+            {
+                widget = CSCS_GUI.GetWidget(name);
+                if (widget == null)
+                {
+                    return false;
+                }
+            }
+            s_mouseHoverHandlers[GetWidgetName(name)] = action;
+            widget.MouseHover += new EventHandler(Widget_Hover);
+            return true;
+        }
         private static void Widget_Click(object sender, EventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null)
+            {
+                return;
+            }
+            string funcName;
+            if (!s_actionHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                return;
+            }
+
+            Variable result = null;
+            if (widget is CheckBox)
+            {
+                result = new Variable(((CheckBox)widget).Checked);
+            }
+            else
+            {
+                result = new Variable(widget.Text);
+            }
+            CustomFunction.Run(funcName, new Variable(widget.Name), result);
+        }
+
+        private static void Widget_Hover(object sender, EventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null)
+            {
+                return;
+            }
+            string funcName;
+            if (s_mouseHoverHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.ToString()));
+            }
+        }
+        private static void Widget_PreClick(object sender, MouseEventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null || e.Button != MouseButtons.Left)
+            {
+                return;
+            }
+            string funcName;
+            if (s_preActionHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.ToString()));
+            }
+        }
+        private static void Widget_DoubleClick(object sender, EventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null)
+            {
+                return;
+            }
+            string funcName;
+            if (s_doubleClickHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.ToString()));
+            }
+        }
+        private static void Widget_KeyDown(object sender, KeyEventArgs e)
+        {
+            Control widget = sender as Control;
+            
+            if (widget == null)
+            {
+                return;
+            }
+
+            string funcName;
+            if (s_keyDownHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(((char)e.KeyValue).ToString()));
+            }
+        }
+        private static void Widget_KeyUp(object sender, KeyEventArgs e)
+        {
+            Control widget = sender as Control;
+
+            if (widget == null)
+            {
+                return;
+            }
+
+            string funcName;
+            if (s_keyUpHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(((char)e.KeyValue).ToString()));
+            }
+        }
+        private static void Widget_KeyPress(object sender, KeyPressEventArgs e)
         {
             Control widget = sender as Control;
             if (widget == null)
@@ -120,16 +361,24 @@ namespace WindowsFormsCSCS
             }
 
             string funcName;
-            if (s_actionHandlers.TryGetValue(widget.Name, out funcName))
+            if (s_keyPressHandlers.TryGetValue(widget.Name, out funcName))
             {
-                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.ToString()));
-            }
-            else if (s_actionHandlers.TryGetValue(widget.Text, out funcName))
-            {
-                CustomFunction.Run(funcName, new Variable(widget.Text), new Variable(e.ToString()));
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(e.KeyChar.ToString()));
             }
         }
-
+        private static void Widget_TextChanged(object sender, EventArgs e)
+        {
+            Control widget = sender as Control;
+            if (widget == null)
+            {
+                return;
+            }
+            string funcName;
+            if (s_textChangedHandlers.TryGetValue(widget.Name, out funcName))
+            {
+                CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(widget.Text));
+            }
+        }
         public static bool RemoveWidget(string name)
         {
             var widget = CSCS_GUI.GetWidget(name);
@@ -138,19 +387,15 @@ namespace WindowsFormsCSCS
                 return false;
             }
 
-            if (s_actionHandlers != null)
-            {
-                s_actionHandlers.Remove(name);
-                widget.Click -= new System.EventHandler(Widget_Click);
-            }
+            s_actionHandlers.Remove(name);
+            widget.Click -= new EventHandler(Widget_Click);
+            widget.MouseDown -= new MouseEventHandler(Widget_PreClick);
 
             TheForm.Controls.Remove(widget);
             widget.Dispose();
 
             return true;
         }
-
-        static Dictionary<string, string> s_actionHandlers;
     }
 
     class AddButtonHandlerFunction : ParserFunction
@@ -245,6 +490,7 @@ namespace WindowsFormsCSCS
             return new Variable(ret);
         }
     }
+
     class GetTextWidgetFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -258,7 +504,15 @@ namespace WindowsFormsCSCS
             {
                 return Variable.EmptyInstance;
             }
-            return new Variable(widget.Text);
+
+            var result = widget.Text;
+            if (widget is CheckBox)
+            {
+                var checkBox = widget as CheckBox;
+                result = checkBox.Checked ? "true" : "false";
+            }
+
+            return new Variable(result);
         }
     }
 
@@ -277,9 +531,67 @@ namespace WindowsFormsCSCS
             {
                 return Variable.EmptyInstance;
             }
+
+            if (widget is ComboBox)
+            {
+                var combo = widget as ComboBox;
+                var index = 0;
+                if (args[0].Type == Variable.VarType.NUMBER)
+                {
+                    index = (int)args[0].Value;
+                }
+                else
+                {
+                    foreach (var item in combo.Items)
+                    {
+                        if (item.ToString() == text)
+                        {
+                            break;
+                        }
+                        index++;
+                    }
+                }
+                if (index >= 0 && index < combo.Items.Count)
+                {
+                    combo.SelectedIndex = index;
+                }
+            }
             widget.Text = text;
 
             return new Variable(true);
+        }
+    }
+
+    class AddWidgetDataFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            string widgetName = Utils.GetToken(script, Constants.TOKEN_SEPARATION);
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+            var data = args[0];
+
+            var widget = CSCS_GUI.GetWidget(widgetName);
+            var itemsAdded = 0;
+            if (widget is ComboBox)
+            {
+                var combo = widget as ComboBox;
+                if (data.Type == Variable.VarType.ARRAY)
+                {
+                    foreach (var item in data.Tuple)
+                    {
+                        combo.Items.Add(item.AsString());
+                    }
+                    itemsAdded = data.Tuple.Count;
+                }
+                else
+                {
+                    combo.Items.Add(data.AsString());
+                    itemsAdded = 1;
+                }
+            }
+
+            return new Variable(itemsAdded);
         }
     }
 
@@ -330,7 +642,7 @@ namespace WindowsFormsCSCS
 
             if (!string.IsNullOrWhiteSpace(callback))
             {
-                CSCS_GUI.AddActionHandler(control.Name, callback);
+                CSCS_GUI.AddActionHandler(control.Name, callback, control);
             }
 
             return new Variable(true);
