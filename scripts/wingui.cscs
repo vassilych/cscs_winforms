@@ -87,6 +87,9 @@ function button9_Clicked(sender, load) {
     return;
   }
   text = GetText("textBox2");
+  if (text == "") {
+    return;
+  }
   comboItems.Add(text);
   AddWidgetData(comboBox1, text);
   SetText("comboBox1", text);
@@ -124,10 +127,6 @@ function textbox2_TextChange(sender, load) {
 	}
   }
 }
-
-comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
-AddWidgetData(comboBox1, comboItems);
-SetText("comboBox1", "diez");
 
 function combobox1_Clicked(sender, load) {
   if (!refresh) {
@@ -167,6 +166,10 @@ newWidgets= 0;
 showCounter = 0;
 makeSense = false;
 refresh = false;
+
+comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
+AddWidgetData(comboBox1, comboItems);
+SetText("comboBox1", "diez");
 
 //AddButtonHandler("Open File",     "getFile");
 //AddButtonHandler("Save File",     "getDataToFile");
