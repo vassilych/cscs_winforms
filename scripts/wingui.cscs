@@ -194,7 +194,7 @@ makeSense = false;
 refresh = false;
 c = 0;
 
-comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
+comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"};
 AddWidgetData(comboBox1, comboItems);
 SetText("comboBox1", "cinco");
 
