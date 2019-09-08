@@ -14,6 +14,7 @@ namespace WindowsFormsCSCS
     public class CSCS_GUI
     {
         public static Form1 TheForm { get; set; }
+        public static Dictionary<string, Control> Controls { get; set; } = new Dictionary<string, Control>();
         //public static Action<string, string> OnWidgetClick;
 
         static Dictionary<string, string> s_actionHandlers      = new Dictionary<string, string>();
@@ -25,17 +26,23 @@ namespace WindowsFormsCSCS
         static Dictionary<string, string> s_textChangedHandlers = new Dictionary<string, string>();
         static Dictionary<string, string> s_mouseHoverHandlers  = new Dictionary<string, string>();
 
+        static Dictionary<string, TabPage> s_tabPages           = new Dictionary<string, TabPage>();
+        static TabControl s_tabControl;
+
+
         public static void Init()
         {
             ParserFunction.RegisterFunction("OpenFile",           new OpenFileFunction());
             ParserFunction.RegisterFunction("SaveFile",           new SaveFileFunction());
 
-            ParserFunction.RegisterFunction("AddButtonHandler",   new AddButtonHandlerFunction());
             ParserFunction.RegisterFunction("PickColor",          new PickColorFunction());
             ParserFunction.RegisterFunction("SetColor",           new ColorWidgetFunction());
 
             ParserFunction.RegisterFunction("AddWidget",          new AddWidgetFunction());
             ParserFunction.RegisterFunction("RemoveWidget",       new RemoveWidgetFunction());
+            ParserFunction.RegisterFunction("AddTab",             new AddTabFunction());
+            ParserFunction.RegisterFunction("RemoveTab",          new RemoveTabFunction());
+
             ParserFunction.RegisterFunction("MoveWidget",         new MoveWidgetFunction());
             ParserFunction.RegisterFunction("ShowWidget",         new ShowHideWidgetFunction(true));
             ParserFunction.RegisterFunction("HideWidget",         new ShowHideWidgetFunction(false));
@@ -46,6 +53,7 @@ namespace WindowsFormsCSCS
             ParserFunction.RegisterFunction("SetText",            new SetTextWidgetFunction());
             ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
 
+            ParserFunction.RegisterFunction("ChangeCursor",       new ChangeCursorFunction());
             ParserFunction.RegisterFunction("MessageBox",         new MessageBoxFunction());
 
             AddActions();
@@ -72,10 +80,10 @@ namespace WindowsFormsCSCS
 
         public static void AddActions()
         {
-            foreach (var item in TheForm.Controls)
+            CacheControls();
+            foreach (KeyValuePair<string, Control> entry in Controls)
             {
-                Control control = item as Control;
-                AddActions(control);
+                AddActions(entry.Value);
             }
         }
 
@@ -87,187 +95,196 @@ namespace WindowsFormsCSCS
             }
             name = string.IsNullOrWhiteSpace(name) ? control.Name : name;
 
-            string clickAction = name + "_Clicked";
-            string preClickAction = name + "_PreClicked";
+            string clickAction       = name + "_Clicked";
+            string preClickAction    = name + "_PreClicked";
             string doubleClickAction = name + "_DoubleClicked";
-            string keyDownAction = name + "_KeyDown";
-            string keyUpAction = name + "_KeyUp";
-            string keyPressAction = name + "_KeyPress";
-            string textChangeAction = name + "_TextChange";
-            string mouseHoverAction = name + "_MouseHover";
+            string keyDownAction     = name + "_KeyDown";
+            string keyUpAction       = name + "_KeyUp";
+            string keyPressAction    = name + "_KeyPress";
+            string textChangeAction  = name + "_TextChange";
+            string mouseHoverAction  = name + "_MouseHover";
 
-            AddActionHandler(control.Name, clickAction, control);
-            AddPreActionHandler(control.Name, preClickAction, control);
+            AddActionHandler(     control.Name, clickAction, control);
+            AddPreActionHandler(  control.Name, preClickAction, control);
             AddDoubleClickHandler(control.Name, doubleClickAction, control);
-            AddKeyDownHandler(control.Name, keyDownAction, control);
-            AddKeyUpHandler(control.Name, keyUpAction, control);
-            AddKeyPressHandler(control.Name, keyPressAction, control);
+            AddKeyDownHandler(    control.Name, keyDownAction, control);
+            AddKeyUpHandler(      control.Name, keyUpAction, control);
+            AddKeyPressHandler(   control.Name, keyPressAction, control);
             AddTextChangedHandler(control.Name, textChangeAction, control);
-            AddMouseHoverHandler(control.Name, mouseHoverAction, control);
+            AddMouseHoverHandler( control.Name, mouseHoverAction, control);
         }
+
         public static Control GetWidget(string name)
         {
-            if (TheForm == null)
+            CacheControls();
+            Control result;
+            if (Controls.TryGetValue(name, out result))
             {
-                return null;
-            }
-
-            foreach(var item in TheForm.Controls)
-            {
-                Control control = item as Control;
-                if (control.Name == name)
-                {
-                    return control;
-                }
-            }
-            foreach (var item in TheForm.Controls)
-            {
-                Control control = item as Control;
-                if (control.Text == name)
-                {
-                    return control;
-                }
+                return result;
             }
             return null;
         }
 
-        public static string GetWidgetName(string text)
+        public static string GetWidgetName(string text, bool isTabName = false)
         {
-            if (TheForm == null)
+            CacheControls();
+            foreach (KeyValuePair<string, Control> entry in Controls)
             {
-                return "";
-            }
-
-            foreach (var item in TheForm.Controls)
-            {
-                Control control = item as Control;
-                if (control.Text == text)
+                if (isTabName && !(entry.Value is TabPage))
                 {
-                    return control.Name;
+                    continue;
+                }
+                if (entry.Value.Text == text || entry.Value.Name == text)
+                {
+                    return entry.Key;
                 }
             }
             return text;
         }
 
-        public static bool AddActionHandler(string name, string action, Control widget = null)
+        public static void CacheControls(bool force = false)
         {
-            if (widget == null)
+            if ((!force && Controls.Count > 0) || TheForm == null)
             {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
+                return;
+            }
+
+            foreach (var item in TheForm.Controls)
+            {
+                Control control = item as Control;
+                Controls[control.Name] = control;
+                if (control is TabControl)
                 {
-                    return false;
+                    s_tabControl = control as TabControl;
+                    foreach (var page in s_tabControl.TabPages)
+                    {
+                        var pageControl = page as TabPage;
+                        s_tabPages[pageControl.Name] = pageControl;
+                        Controls[pageControl.Name] = pageControl;
+                        foreach (var itemi in pageControl.Controls)
+                        {
+                            var controli = itemi as Control;
+                            if (controli != null)
+                            {
+                                Controls[controli.Name] = controli;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public static bool AddTab(string tabName)
+        {
+            if (s_tabControl == null || string.IsNullOrWhiteSpace(tabName))
+            {
+                return false;
+            }
+            TabPage tabPage = new TabPage(tabName);
+
+            tabPage.Name = "tabPage" + (s_tabPages.Count + 1);
+            if (s_tabPages.Count > 0)
+            {
+                var template = s_tabPages["tabPage" + s_tabPages.Count];
+                tabPage.Padding = template.Padding;
+                tabPage.Size = template.Size;
+                tabPage.TabIndex = template.TabIndex + 1;
+                tabPage.UseVisualStyleBackColor = template.UseVisualStyleBackColor;
+            }
+            else
+            {
+                tabPage.Location = new System.Drawing.Point(4, 25);
+                tabPage.Padding = new System.Windows.Forms.Padding(3);
+                tabPage.Size = new System.Drawing.Size(1047, 509);
+                tabPage.TabIndex = 0;
+                tabPage.UseVisualStyleBackColor = true;
+            }
+
+            s_tabPages[tabPage.Name] = tabPage;
+            s_tabControl.Controls.Add(tabPage);
+            Controls[tabPage.Name] = tabPage;
+
+            return true;
+        }
+
+        public static bool RemoveTab(string tabName)
+        {
+            if (s_tabControl == null || string.IsNullOrWhiteSpace(tabName))
+            {
+                return false;
+            }
+
+            tabName = GetWidgetName(tabName, true);
+            TabPage tabPage;
+            if (!s_tabPages.TryGetValue(tabName, out tabPage))
+            {
+                return false;
+            }
+
+            foreach (var item in tabPage.Controls)
+            {
+                var control = item as Control;
+                if (control != null)
+                {
+                    RemoveWidget(control.Name);
                 }
             }
 
-            s_actionHandlers[GetWidgetName(name)] = action;
+            s_tabPages.Remove(tabName);
+            s_tabControl.Controls.Remove(tabPage);
+            Controls.Remove(tabName);
+            return true;
+        }
+
+        public static bool AddActionHandler(string name, string action, Control widget)
+        {
+            s_actionHandlers[name] = action;
             widget.Click += new System.EventHandler(Widget_Click);
             return true;
         }
-        public static bool AddPreActionHandler(string name, string action, Control widget = null)
+        public static bool AddPreActionHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_preActionHandlers[GetWidgetName(name)] = action;
+            s_preActionHandlers[name] = action;
             widget.MouseDown += new MouseEventHandler(Widget_PreClick);
             return true;
         }
-        public static bool AddDoubleClickHandler(string name, string action, Control widget = null)
+        public static bool AddDoubleClickHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_doubleClickHandlers[GetWidgetName(name)] = action;
+            s_doubleClickHandlers[name] = action;
             widget.DoubleClick += new System.EventHandler(Widget_DoubleClick);
             return true;
         }
-        public static bool AddKeyDownHandler(string name, string action, Control widget = null)
+        public static bool AddKeyDownHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_keyDownHandlers[GetWidgetName(name)] = action;
+            s_keyDownHandlers[name] = action;
             widget.KeyDown += new KeyEventHandler(Widget_KeyDown);
             return true;
         }
-        public static bool AddKeyUpHandler(string name, string action, Control widget = null)
+        public static bool AddKeyUpHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_keyUpHandlers[GetWidgetName(name)] = action;
-            widget.KeyDown += new KeyEventHandler(Widget_KeyUp);
+            s_keyUpHandlers[name] = action;
+            widget.KeyUp += new KeyEventHandler(Widget_KeyUp);
             return true;
         }
-        public static bool AddKeyPressHandler(string name, string action, Control widget = null)
+        public static bool AddKeyPressHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_keyPressHandlers[GetWidgetName(name)] = action;
+            s_keyPressHandlers[name] = action;
             widget.KeyPress += new KeyPressEventHandler(Widget_KeyPress);
             return true;
         }
-        public static bool AddTextChangedHandler(string name, string action, Control widget = null)
+        public static bool AddTextChangedHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-
-            s_textChangedHandlers[GetWidgetName(name)] = action;
+            s_textChangedHandlers[name] = action;
             widget.TextChanged += new EventHandler(Widget_TextChanged);
             return true;
         }
-        public static bool AddMouseHoverHandler(string name, string action, Control widget = null)
+        public static bool AddMouseHoverHandler(string name, string action, Control widget)
         {
-            if (widget == null)
-            {
-                widget = CSCS_GUI.GetWidget(name);
-                if (widget == null)
-                {
-                    return false;
-                }
-            }
-            s_mouseHoverHandlers[GetWidgetName(name)] = action;
+            s_mouseHoverHandlers[name] = action;
             widget.MouseHover += new EventHandler(Widget_Hover);
             return true;
         }
+
         private static void Widget_Click(object sender, EventArgs e)
         {
             Control widget = sender as Control;
@@ -300,6 +317,7 @@ namespace WindowsFormsCSCS
             {
                 return;
             }
+
             string funcName;
             if (s_mouseHoverHandlers.TryGetValue(widget.Name, out funcName))
             {
@@ -313,6 +331,7 @@ namespace WindowsFormsCSCS
             {
                 return;
             }
+
             string funcName;
             if (s_preActionHandlers.TryGetValue(widget.Name, out funcName))
             {
@@ -326,6 +345,7 @@ namespace WindowsFormsCSCS
             {
                 return;
             }
+
             string funcName;
             if (s_doubleClickHandlers.TryGetValue(widget.Name, out funcName))
             {
@@ -334,8 +354,7 @@ namespace WindowsFormsCSCS
         }
         private static void Widget_KeyDown(object sender, KeyEventArgs e)
         {
-            Control widget = sender as Control;
-            
+            Control widget = sender as Control;            
             if (widget == null)
             {
                 return;
@@ -350,7 +369,6 @@ namespace WindowsFormsCSCS
         private static void Widget_KeyUp(object sender, KeyEventArgs e)
         {
             Control widget = sender as Control;
-
             if (widget == null)
             {
                 return;
@@ -383,46 +401,128 @@ namespace WindowsFormsCSCS
             {
                 return;
             }
+
             string funcName;
             if (s_textChangedHandlers.TryGetValue(widget.Name, out funcName))
             {
                 CustomFunction.Run(funcName, new Variable(widget.Name), new Variable(widget.Text));
             }
         }
-        public static bool RemoveWidget(string name)
+        public static void AddWidget(Control control, string widgetName, string callback = "")
         {
-            var widget = CSCS_GUI.GetWidget(name);
-            if (widget == null)
+            CacheControls();
+
+            if (s_tabControl != null && s_tabPages.Count > 0)
             {
-                return false;
+                int index = widgetName.IndexOf('.');
+                var widgetTab = index > 0 && index < widgetName.Length - 1 ? widgetName.Substring(0, index) : "";
+                widgetName = index > 0 && index < widgetName.Length - 1 ? widgetName.Substring(index + 1) : widgetName;
+                control.Name = widgetName;
+
+                TabPage tabPage;
+                if (string.IsNullOrEmpty(widgetTab) || !s_tabPages.TryGetValue(widgetTab, out tabPage))
+                {
+                    tabPage = s_tabControl.TabPages[0];
+                }
+                tabPage.Controls.Add(control);
+
+            }
+            else
+            {
+                control.Name = widgetName;
+                TheForm.Controls.Add(control);
             }
 
-            s_actionHandlers.Remove(name);
-            widget.Click -= new EventHandler(Widget_Click);
-            widget.MouseDown -= new MouseEventHandler(Widget_PreClick);
+            Controls[widgetName] = control;
+            CSCS_GUI.AddActions(control, callback);
+        }
 
-            TheForm.Controls.Remove(widget);
-            widget.Dispose();
+        public static bool RemoveWidget(string widgetName)
+        {
+            Control control;
+            if (s_tabControl != null && s_tabPages.Count > 0)
+            {
+                int index = widgetName.IndexOf('.');
+                var widgetTab = index > 0 && index < widgetName.Length - 1 ? widgetName.Substring(0, index) : "";
+                widgetName = index > 0 && index < widgetName.Length - 1 ? widgetName.Substring(index + 1) : widgetName;
+
+                TabPage tabPage;
+                if (string.IsNullOrEmpty(widgetTab) || !s_tabPages.TryGetValue(widgetTab, out tabPage))
+                {
+                    tabPage = s_tabControl.TabPages[0];
+                }
+                control = CSCS_GUI.GetWidget(widgetName);
+                if (control == null)
+                {
+                    return false;
+                }
+                tabPage.Controls.Remove(control);
+
+            }
+            else
+            {
+                control = CSCS_GUI.GetWidget(widgetName);
+                if (control == null)
+                {
+                    return false;
+                }
+                TheForm.Controls.Remove(control);
+            }
+
+            s_actionHandlers.Remove(widgetName);
+            Controls.Remove(widgetName);
+            control.Dispose();
 
             return true;
         }
     }
 
-    class AddButtonHandlerFunction : ParserFunction
+    class ChangeCursorFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
         {
             List<Variable> args = script.GetFunctionArgs();
-            Utils.CheckArgs(args.Count, 2, m_name);
+            string cursorType = Utils.GetSafeString(args, 0, "ok");
+            Application.UseWaitCursor = false;
 
-            string buttonName   = Utils.GetSafeString(args, 0);
-            string buttonAction = Utils.GetSafeString(args, 1);
+            switch (cursorType)
+            {
+                case "ok":
+                    Cursor.Current = Cursors.Default;
+                    break;
+                case "busy":
+                    Cursor.Current = Cursors.WaitCursor;
+                    Application.UseWaitCursor = true;
+                    break;
+                case "hand":
+                    Cursor.Current = Cursors.Hand;
+                    break;
+                case "help":
+                    Cursor.Current = Cursors.Help;
+                    break;
+                case "cross":
+                    Cursor.Current = Cursors.Cross;
+                    break;
+                case "sizeall":
+                    Cursor.Current = Cursors.SizeAll;
+                    break;
+                case "hsplit":
+                    Cursor.Current = Cursors.HSplit;
+                    break;
+                case "vsplit":
+                    Cursor.Current = Cursors.VSplit;
+                    break;
+                case "uparrow":
+                    Cursor.Current = Cursors.UpArrow;
+                    break;
+                default:
+                    Cursor.Current = Cursors.Default;
+                    break;
+            }
 
-            bool registerAction = CSCS_GUI.AddActionHandler(buttonName, buttonAction);
-            return new Variable(registerAction);
+            return Variable.EmptyInstance;
         }
     }
-
     class OpenFileFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -649,12 +749,10 @@ namespace WindowsFormsCSCS
             }
 
             control.Location = new System.Drawing.Point(x, y);
-            control.Name = widgetName;
             control.Text = text;
             control.Size   = new System.Drawing.Size(width, height);
-            CSCS_GUI.TheForm.Controls.Add(control);
 
-            CSCS_GUI.AddActions(control, callback);
+            CSCS_GUI.AddWidget(control, widgetName, callback);
 
             return new Variable(true);
         }
@@ -671,6 +769,34 @@ namespace WindowsFormsCSCS
             bool removed = CSCS_GUI.RemoveWidget(widgetName);
 
             return new Variable(removed);
+        }
+    }
+
+    class AddTabFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            var tabName = Utils.GetSafeString(args, 0);
+            bool added = CSCS_GUI.AddTab(tabName);
+
+            return new Variable(added);
+        }
+    }
+
+    class RemoveTabFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            var tabName = Utils.GetSafeString(args, 0);
+            bool added = CSCS_GUI.RemoveTab(tabName);
+
+            return new Variable(added);
         }
     }
 

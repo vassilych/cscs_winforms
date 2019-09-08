@@ -21,7 +21,7 @@ function button3_Clicked(sender, load) {
   }
   result = MessageBox("Are you happy?", "My Great App", "YesNoCancel");
   SetText(answerLabel, result);
-  SetText("button6", result);
+  SetText("button8", result);
 }
 
 function button4_Clicked(sender, load) {
@@ -37,7 +37,7 @@ function button5_Clicked(sender, load) {
     return;
   }
   newWidgets++;
-  name = "newbutton" + newWidgets;
+  name = "tabPage2.newbutton" + newWidgets;
   text = "New Button" + newWidgets;
   AddWidget(name, "button", text, x, y, width, height, "newButton");
   x += 100;
@@ -50,7 +50,7 @@ function button6_Clicked(sender, load) {
   if (newWidgets <= 0) {
     return;
   }
-  RemoveWidget("newbutton" + newWidgets);
+  RemoveWidget("tabPage2.newbutton" + newWidgets);
   x -= 100;
   newWidgets--;
 }
@@ -95,6 +95,28 @@ function button9_Clicked(sender, load) {
   SetText("comboBox1", text);
 }
 
+function button10_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  text = GetText("textBox3");
+  if (text == "") {
+    return;
+  }
+  AddTab(text);
+}
+
+function button11_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  text = GetText("textBox3");
+  if (text == "") {
+    return;
+  }
+  RemoveTab(text);
+}
+
 function label1_DoubleClicked(sender, load) {
   if (!refresh) {
     return;
@@ -119,6 +141,7 @@ function textbox2_TextChange(sender, load) {
   if (!refresh) {
     return;
   }
+  ChangeCursor("busy");
   text = GetText(sender);
   for (item : comboItems) {
     if (item.StartsWith(text)) {
@@ -126,11 +149,12 @@ function textbox2_TextChange(sender, load) {
 	  break;
 	}
   }
+  ChangeCursor("ok");
 }
 
 function newButton_Clicked(sender, load) {
   text = sender + " clicked";
-  SetText(answerLabel, text);
+  SetText("label2", text);
 }
 
 function combobox1_Clicked(sender, load) {
@@ -146,8 +170,7 @@ function combobox1_PreClicked(sender, load) {
   if (!refresh) {
     return;
   }
-   c = 22;
-   SetText(answerLabel, sender + " is pre-clicked, c=" + c);
+   SetText(answerLabel, sender + " is pre-clicked, current=" + GetText(sender));
 }
 
 function checkBox1_Clicked(sender, load) {
@@ -163,7 +186,7 @@ answerLabel = "label1";
 width = 90;
 height = 28;
 x = 10;
-y = 60;
+y = 20;
 
 newWidgets= 0;
 showCounter = 0;
@@ -173,12 +196,5 @@ c = 0;
 
 comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "ciete", "ocho", "nueve", "diez"};
 AddWidgetData(comboBox1, comboItems);
-SetText("comboBox1", "diez");
+SetText("comboBox1", "cinco");
 
-//AddButtonHandler("Open File",     "getFile");
-//AddButtonHandler("Save File",     "getDataToFile");
-//AddButtonHandler("Color Me",      "colorMe");
-//AddButtonHandler("Ask Question",  "question");
-//AddButtonHandler("Create New",    "addNewWidget");
-//AddButtonHandler("Remove",        "removeNewWidget");
-//AddButtonHandler("Show/Hide",     "showHideWidget");
