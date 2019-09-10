@@ -158,7 +158,7 @@ function button14_Clicked(sender, load) {
   }
   row = selected[0];
   SQLNonQuery("Delete from Users where id=" + row);
-  MessageBox("Deleted row " + row, title, "OK", "info");
+  MessageBox("Deleted row with id " + row, title, "OK", "info");
   button13_Clicked(sender, "");
 }
 

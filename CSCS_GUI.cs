@@ -828,7 +828,7 @@ namespace WindowsFormsCSCS
                     //listView.CheckBoxes = true;
                     listView.FullRowSelect = true;
                     listView.GridLines = true;
-                    listView.Sorting = SortOrder.Ascending;
+                    //listView.Sorting = SortOrder.Ascending;
                     if (args[2].Type == Variable.VarType.ARRAY && args[2].Tuple.Count > 0)
                     {
                         int colWidth = width / args[2].Tuple.Count - 1;
