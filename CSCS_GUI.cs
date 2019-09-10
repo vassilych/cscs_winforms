@@ -52,6 +52,8 @@ namespace WindowsFormsCSCS
             ParserFunction.RegisterFunction("GetText",            new GetTextWidgetFunction());
             ParserFunction.RegisterFunction("SetText",            new SetTextWidgetFunction());
             ParserFunction.RegisterFunction("AddWidgetData",      new AddWidgetDataFunction());
+            ParserFunction.RegisterFunction("GetSelected",        new GetSelectedFunction());
+            ParserFunction.RegisterFunction("SetWidgetOptions",   new SetWidgetOptionsFunction());
 
             ParserFunction.RegisterFunction("ChangeCursor",       new ChangeCursorFunction());
             ParserFunction.RegisterFunction("MessageBox",         new MessageBoxFunction());
@@ -576,18 +578,25 @@ namespace WindowsFormsCSCS
 
             var message = Utils.GetSafeString(args, 0);
             var caption = Utils.GetSafeString(args, 1, "Question");
-            var messageType = Utils.GetSafeString(args, 2, "ok").ToLower();
+            var answerType = Utils.GetSafeString(args, 2, "ok").ToLower();
+            var messageType = Utils.GetSafeString(args, 3, "ok").ToLower();
 
-            MessageBoxButtons buttons = messageType == "ok" ? MessageBoxButtons.OK :
-                messageType == "okcancel"    ? MessageBoxButtons.OKCancel :
-                messageType == "yesno"       ? MessageBoxButtons.YesNo :
-                messageType == "yesnocancel" ? MessageBoxButtons.YesNoCancel :
-                messageType == "retrycancel" ? MessageBoxButtons.RetryCancel : 
-                                               MessageBoxButtons.AbortRetryIgnore;
-
+            MessageBoxButtons buttons =
+                answerType == "ok"          ? MessageBoxButtons.OK :
+                answerType == "okcancel"    ? MessageBoxButtons.OKCancel :
+                answerType == "yesno"       ? MessageBoxButtons.YesNo :
+                answerType == "yesnocancel" ? MessageBoxButtons.YesNoCancel :
+                answerType == "retrycancel" ? MessageBoxButtons.RetryCancel : 
+                                              MessageBoxButtons.AbortRetryIgnore;
+            MessageBoxIcon icon =
+                messageType == "question" ?   MessageBoxIcon.Question :
+                messageType == "info" ?       MessageBoxIcon.Information :
+                messageType == "warning" ?    MessageBoxIcon.Warning :
+                messageType == "error" ?      MessageBoxIcon.Error :
+                messageType == "hand" ?       MessageBoxIcon.Hand :
+                                              MessageBoxIcon.Asterisk;
             var result = MessageBox.Show(message, caption,
-                                         buttons,
-                                         MessageBoxIcon.Question);
+                                         buttons, icon);
 
             var ret = result == DialogResult.OK ? "Ok" :
                       result == DialogResult.Cancel ? "Cancel" :
@@ -601,6 +610,38 @@ namespace WindowsFormsCSCS
         }
     }
 
+    class GetSelectedFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 1, m_name);
+
+            var widgetName = Utils.GetSafeString(args, 0);
+            var widget = CSCS_GUI.GetWidget(widgetName);
+            if (widget == null)
+            {
+                return Variable.EmptyInstance;
+            }
+            
+            if (widget is ListView)
+            {
+                Variable selectedItems = new Variable(Variable.VarType.ARRAY);
+                var listView = widget as ListView;
+                var sel = listView.SelectedItems;
+                int total = sel.Count;
+                for (int i = 0; i < total; i++)
+                {
+                    var item = sel[i];
+                    selectedItems.AddVariable(new Variable(item.Text));
+                }
+                return selectedItems;
+            }
+
+            return GetTextWidgetFunction.GetText(widget);
+        }
+    }
+
     class GetTextWidgetFunction : ParserFunction
     {
         protected override Variable Evaluate(ParsingScript script)
@@ -610,6 +651,11 @@ namespace WindowsFormsCSCS
 
             var widgetName = Utils.GetSafeString(args, 0);
             var widget = CSCS_GUI.GetWidget(widgetName);
+            return GetText(widget);
+        }
+
+        public static Variable GetText(Control widget)
+        {
             if (widget == null)
             {
                 return Variable.EmptyInstance;
@@ -666,7 +712,15 @@ namespace WindowsFormsCSCS
                     combo.SelectedIndex = index;
                 }
             }
-            widget.Text = text;
+            else if (widget is CheckBox)
+            {
+                var checkBox = widget as CheckBox;
+                checkBox.Checked = text == "1" || text.ToLower() == "true";
+            }
+            else
+            {
+                widget.Text = text;
+            }
 
             return new Variable(true);
         }
@@ -700,6 +754,31 @@ namespace WindowsFormsCSCS
                     itemsAdded = 1;
                 }
             }
+            else if (widget is ListView)
+            {
+                ListView listView = widget as ListView;
+                if (data.Type == Variable.VarType.ARRAY && data.Tuple.Count > 0)
+                {
+                    ListViewItem viewItem = new ListViewItem(data.Tuple[0].AsString());
+                    for (int i = 1; i < data.Tuple.Count; i++)
+                    {
+                        viewItem.SubItems.Add(data.Tuple[i].AsString());
+                    }
+                    listView.Items.Add(viewItem);
+                    itemsAdded = data.Tuple.Count;
+                }
+                else
+                {
+                    var dataItems = data.AsString().Split(',');
+                    ListViewItem viewItem = new ListViewItem(dataItems[0]);
+                    for (int i = 1; i < dataItems.Length; i++)
+                    {
+                        viewItem.SubItems.Add(dataItems[i]);
+                    }
+                    listView.Items.Add(viewItem);
+                    itemsAdded = dataItems.Length;
+                }
+            }        
 
             return new Variable(itemsAdded);
         }
@@ -741,6 +820,33 @@ namespace WindowsFormsCSCS
                     var textBox = new TextBox();
                     control = textBox;
                     break;
+                case "listview":
+                    var listView = new ListView();
+                    listView.View = View.Details;
+                    listView.Bounds = new Rectangle(new Point(x+2, y+2), new Size(width-4, height-4));
+                    listView.AllowColumnReorder = true;
+                    //listView.CheckBoxes = true;
+                    listView.FullRowSelect = true;
+                    listView.GridLines = true;
+                    listView.Sorting = SortOrder.Ascending;
+                    if (args[2].Type == Variable.VarType.ARRAY && args[2].Tuple.Count > 0)
+                    {
+                        int colWidth = width / args[2].Tuple.Count - 1;
+                        for (int i = 0; i < args[2].Tuple.Count; i++)
+                        {
+                            listView.Columns.Add(args[2].Tuple[i].AsString(), colWidth, HorizontalAlignment.Left);
+                        }
+                    }
+                    else
+                    {
+                        var dataItems = text.Split(',');
+                        for (int i = 0; i < dataItems.Length; i++)
+                        {
+                            listView.Columns.Add(dataItems[i], -2, HorizontalAlignment.Left);
+                        }
+                    }
+                    control = listView;
+                    break;
             }
 
             if (control == null)
@@ -769,6 +875,118 @@ namespace WindowsFormsCSCS
             bool removed = CSCS_GUI.RemoveWidget(widgetName);
 
             return new Variable(removed);
+        }
+    }
+
+    class SetWidgetOptionsFunction : ParserFunction
+    {
+        protected override Variable Evaluate(ParsingScript script)
+        {
+            List<Variable> args = script.GetFunctionArgs();
+            Utils.CheckArgs(args.Count, 2, m_name);
+
+            var widgetName = Utils.GetSafeString(args, 0);
+            var bgColor = Utils.GetSafeString(args, 1);
+            var fgColor = Utils.GetSafeString(args, 2, "black");
+
+            var widget = CSCS_GUI.GetWidget(widgetName);
+            if (widget is ListView)
+            {
+                ListView listView = widget as ListView;
+                Color backColor = StringToColor(bgColor);
+                Color foreColor = StringToColor(fgColor);
+                ColorListViewHeader(ref listView, backColor, foreColor);
+            }
+
+            return new Variable(true);
+        }
+
+        public static void ColorListViewHeader(ref ListView list, Color backColor, Color foreColor)
+        {
+            list.OwnerDraw = true;
+            list.DrawColumnHeader +=
+                new DrawListViewColumnHeaderEventHandler
+                (
+                    (sender, e) => HeaderDraw(sender, e, backColor, foreColor)
+                );
+            list.DrawItem += new DrawListViewItemEventHandler(BodyDraw);
+        }
+
+        private static void HeaderDraw(object sender, DrawListViewColumnHeaderEventArgs e, Color backColor, Color foreColor)
+        {
+            using (SolidBrush backBrush = new SolidBrush(backColor))
+            {
+                e.Graphics.FillRectangle(backBrush, e.Bounds);
+            }
+
+            using (SolidBrush foreBrush = new SolidBrush(foreColor))
+            {
+                e.Graphics.DrawString(e.Header.Text, e.Font, foreBrush, e.Bounds);
+            }
+        }
+
+        private static void BodyDraw(object sender, DrawListViewItemEventArgs e)
+        {
+            e.DrawDefault = true;
+        }
+
+        public static Color StringToColor(string strColor)
+        {
+            switch(strColor.ToLower())
+            {
+                case "black": return Color.Black;
+                case "white": return Color.White;
+                case "green": return Color.Green;
+                case "red":   return Color.Red;
+                case "blue":  return Color.Blue;
+                case "brown": return Color.Brown;
+                case "yellow": return Color.Yellow;
+                case "rose": return Color.MistyRose;
+                case "purple": return Color.Purple;
+                case "orange": return Color.Orange;
+                case "magenta": return Color.Magenta;
+                case "maroon": return Color.Maroon;
+                case "aqua": return Color.Aqua;
+                case "aquamarine": return Color.Aquamarine;
+                case "azure": return Color.Azure;
+                case "beige": return Color.Beige;
+                case "chocolate": return Color.Chocolate;
+                case "coral": return Color.Coral;
+                case "cyan": return Color.Cyan;
+                case "darkblue": return Color.DarkBlue;
+                case "darkcyan": return Color.DarkCyan;
+                case "darkgray": return Color.DarkGray;
+                case "darkgreen": return Color.DarkGreen;
+                case "darkkhaki": return Color.DarkKhaki;
+                case "darkorange": return Color.DarkOrange;
+                case "darkred": return Color.DarkRed;
+                case "darkturquoise": return Color.DarkTurquoise;
+                case "deeppink": return Color.DeepPink;
+                case "deepskyblue": return Color.DeepSkyBlue;
+                case "dimgray": return Color.DimGray;
+                case "gray": return Color.Gray;
+                case "gold": return Color.Gold;
+                case "greenyellow": return Color.GreenYellow;
+                case "hotpink": return Color.HotPink;
+                case "indigo": return Color.Indigo;
+                case "khaki": return Color.Khaki;
+                case "lightblue": return Color.LightBlue;
+                case "lightcyan": return Color.LightCyan;
+                case "lightgray": return Color.LightGray;
+                case "lightgreen": return Color.LightGreen;
+                case "lightpink": return Color.LightPink;
+                case "lightskyblue": return Color.LightSkyBlue;
+                case "lime": return Color.Lime;
+                case "limegreen": return Color.LimeGreen;
+                case "navy": return Color.Navy;
+                case "olive": return Color.Olive;
+                case "salmon": return Color.Salmon;
+                case "silver": return Color.Silver;
+                case "skyblue": return Color.SkyBlue;
+                case "snow": return Color.Snow;
+                case "violet": return Color.Violet;
+            }
+            return Color.Black;
         }
     }
 

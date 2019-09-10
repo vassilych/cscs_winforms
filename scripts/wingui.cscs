@@ -1,4 +1,5 @@
-﻿
+﻿title = "My Great CSCS App";
+
 function button1_Clicked(sender, load) {
   if (!refresh) {
     return;
@@ -19,7 +20,7 @@ function button3_Clicked(sender, load) {
   if (!refresh) {
     return;
   }
-  result = MessageBox("Are you happy?", "My Great App", "YesNoCancel");
+  result = MessageBox("Are you happy?", "My Great App", "YesNoCancel", "question");
   SetText(answerLabel, result);
   SetText("button8", result);
 }
@@ -72,7 +73,7 @@ function button8_Clicked(sender, load) {
     return;
   }
   msg = "Button name [" + sender + "] with text: [" + GetText(sender) + "]";
-  MessageBox(msg, "My Great App", "OkCancel");
+  MessageBox(msg, title, "OkCancel", "info");
 }
 
 function button8_PreClicked(sender, load) {
@@ -115,6 +116,50 @@ function button11_Clicked(sender, load) {
     return;
   }
   RemoveTab(text);
+}
+
+function button12_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  data[0] = GetText("textBox4");
+  data[1] = GetText("textBox5");
+  data[2] = GetText("textBox6");
+  if (data[0] == "" || data[1] == "" || data[2] == "") {
+    MessageBox("Please fill out all fields", title, "OK", "warning");
+	return;
+  }
+  result = SQLInsert("Users", "name,salary,email", data);
+  if (result.StartsWith("Error")) {
+    MessageBox(result, title, "Cancel", "error");  
+  } else {
+    MessageBox(result, title, "OK", "info");
+  }
+  button13_Clicked(sender, "");
+}
+
+function button13_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  query = "SELECT TOP 15 * FROM Users";
+  results = SQLQuery(query);
+  populateListView(results);
+}
+
+function button14_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  selected = GetSelected("listView1");
+  if (selected.Size == 0) {
+    MessageBox("Nothing has been selected.", title, "OK", "warning");
+	return;
+  }
+  row = selected[0];
+  SQLNonQuery("Delete from Users where id=" + row);
+  MessageBox("Deleted row " + row, title, "OK", "info");
+  button13_Clicked(sender, "");
 }
 
 function label1_DoubleClicked(sender, load) {
@@ -182,6 +227,15 @@ function checkBox1_Clicked(sender, load) {
 	}
 }
 
+function populateListView(data) {
+  RemoveWidget("tabPage3.listView1");
+  AddWidget("tabPage3.listView1", "listview", data[0], x, y + 25, 600, 300);
+  SetWidgetOptions("listView1", "LightSkyBlue", "Black");
+  for (i = 1; i < data.Size; i++) {
+    AddWidgetData(listView1, data[i]);
+  }
+}
+
 answerLabel = "label1";
 width = 90;
 height = 28;
@@ -191,10 +245,14 @@ y = 20;
 newWidgets= 0;
 showCounter = 0;
 makeSense = false;
-refresh = false;
+refresh = true;
+SetText("checkBox1", refresh);
 c = 0;
 
 comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"};
 AddWidgetData(comboBox1, comboItems);
 SetText("comboBox1", "cinco");
+
+SQLConnecionString("Server=DESKTOP-RKQQ93A\\SQLEXPRESS;Database=CSCS;User Id=sa;Password=sqlpassword;");
+//cols = SQLTableColumns("Users");
 
