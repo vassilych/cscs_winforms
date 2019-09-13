@@ -122,20 +122,21 @@ function button12_Clicked(sender, load) {
   if (!refresh) {
     return;
   }
-  data[0] = GetText("textBox4");
-  data[1] = GetText("textBox5");
-  data[2] = GetText("textBox6");
+  data  = {GetText("textBox4").Trim(), GetText("textBox5").Trim(), GetText("textBox6").Trim()};
+  //data2 = {GetText("textBox4")+"X", GetText("textBox5")+"9", GetText("textBox6")+"A"};
+  //data3 = {GetText("textBox4")+"YY", GetText("textBox5")+"99", GetText("textBox6")+"BB"};
+  //data = { data, data2, data3 }
   if (data[0] == "" || data[1] == "" || data[2] == "") {
     MessageBox("Please fill out all fields", title, "OK", "warning");
 	return;
   }
-  result = SQLInsert("Users", "name,salary,email", data);
-  if (result.StartsWith("Error")) {
-    MessageBox(result, title, "Cancel", "error");  
-  } else {
-    MessageBox(result, title, "OK", "info");
+  try {
+    result = SQLInsert("Users", "name,salary,email", data);
+	MessageBox("Inserted " + result + " row(s).", title, "OK", "info");
+    button13_Clicked(sender, "");
+  } catch (exc) {
+    MessageBox(exc, title, "Cancel", "error");
   }
-  button13_Clicked(sender, "");
 }
 
 function button13_Clicked(sender, load) {
@@ -156,9 +157,12 @@ function button14_Clicked(sender, load) {
     MessageBox("Nothing has been selected.", title, "OK", "warning");
 	return;
   }
-  row = selected[0];
-  SQLNonQuery("Delete from Users where id=" + row);
-  MessageBox("Deleted row with id " + row, title, "OK", "info");
+  i = 0;
+  for (row : selected) {
+    row = selected[i++];
+    SQLNonQuery("Delete from Users where id=" + row);
+  }
+  MessageBox("Deleted " + i + " row(s).", title, "OK", "info");
   button13_Clicked(sender, "");
 }
 

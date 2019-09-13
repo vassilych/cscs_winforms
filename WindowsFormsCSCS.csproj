@@ -61,6 +61,7 @@
     <Compile Include="CSCS\Functions.Flow.cs" />
     <Compile Include="CSCS\Functions.Math.cs" />
     <Compile Include="CSCS\Functions.OS.cs" />
+    <Compile Include="CSCS\Functions.SQL.cs" />
     <Compile Include="CSCS\Functions.Standalone.cs" />
     <Compile Include="CSCS\Functions.Utils.cs" />
     <Compile Include="CSCS_GUI.cs" />
@@ -77,7 +78,6 @@
     <Compile Include="CSCS\Utils.Extra.cs" />
     <Compile Include="CSCS\Utils.Parsing.cs" />
     <Compile Include="CSCS\Variable.cs" />
-    <Compile Include="CSCS_SQL.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
