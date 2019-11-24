@@ -1,0 +1,3 @@
+﻿include("wingui.cscs");
+
+SetText "comboBox1"  globalVar ;

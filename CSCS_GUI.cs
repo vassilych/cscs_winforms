@@ -59,6 +59,10 @@ namespace WindowsFormsCSCS
             ParserFunction.RegisterFunction("MessageBox",         new MessageBoxFunction());
 
             AddActions();
+
+            Constants.FUNCT_WITH_SPACE.Add("SetText");
+            //ParserFunction.RegisterFunction("funcName", new MyFunction());
+
         }
 
         public static void RunScript(string fileName)

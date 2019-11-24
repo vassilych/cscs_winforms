@@ -53,15 +53,16 @@
             this.button2 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.button12 = new System.Windows.Forms.Button();
-            this.label3 = new System.Windows.Forms.Label();
-            this.button13 = new System.Windows.Forms.Button();
-            this.textBox4 = new System.Windows.Forms.TextBox();
-            this.textBox5 = new System.Windows.Forms.TextBox();
-            this.label4 = new System.Windows.Forms.Label();
+            this.button14 = new System.Windows.Forms.Button();
             this.textBox6 = new System.Windows.Forms.TextBox();
             this.label5 = new System.Windows.Forms.Label();
-            this.button14 = new System.Windows.Forms.Button();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.label4 = new System.Windows.Forms.Label();
+            this.textBox4 = new System.Windows.Forms.TextBox();
+            this.button13 = new System.Windows.Forms.Button();
+            this.button12 = new System.Windows.Forms.Button();
+            this.label3 = new System.Windows.Forms.Label();
+            this.button15 = new System.Windows.Forms.Button();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
@@ -151,6 +152,7 @@
             // 
             // tabPage1
             // 
+            this.tabPage1.Controls.Add(this.button15);
             this.tabPage1.Controls.Add(this.button11);
             this.tabPage1.Controls.Add(this.button10);
             this.tabPage1.Controls.Add(this.textBox3);
@@ -294,6 +296,63 @@
             this.tabPage3.Text = "SQL Tests";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // button14
+            // 
+            this.button14.Location = new System.Drawing.Point(872, 71);
+            this.button14.Name = "button14";
+            this.button14.Size = new System.Drawing.Size(167, 36);
+            this.button14.TabIndex = 8;
+            this.button14.Text = "Delete Selected";
+            this.button14.UseVisualStyleBackColor = true;
+            // 
+            // textBox6
+            // 
+            this.textBox6.Location = new System.Drawing.Point(446, 13);
+            this.textBox6.Name = "textBox6";
+            this.textBox6.Size = new System.Drawing.Size(179, 22);
+            this.textBox6.TabIndex = 7;
+            // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(398, 15);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(46, 17);
+            this.label5.TabIndex = 6;
+            this.label5.Text = "Email:";
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(248, 13);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(128, 22);
+            this.textBox5.TabIndex = 5;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(194, 16);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(52, 17);
+            this.label4.TabIndex = 4;
+            this.label4.Text = "Salary:";
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(63, 13);
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(121, 22);
+            this.textBox4.TabIndex = 3;
+            // 
+            // button13
+            // 
+            this.button13.Location = new System.Drawing.Point(872, 15);
+            this.button13.Name = "button13";
+            this.button13.Size = new System.Drawing.Size(167, 29);
+            this.button13.TabIndex = 2;
+            this.button13.Text = "Refresh Data from DB";
+            this.button13.UseVisualStyleBackColor = true;
+            // 
             // button12
             // 
             this.button12.Location = new System.Drawing.Point(659, 13);
@@ -312,62 +371,14 @@
             this.label3.TabIndex = 0;
             this.label3.Text = "Name:";
             // 
-            // button13
+            // button15
             // 
-            this.button13.Location = new System.Drawing.Point(872, 15);
-            this.button13.Name = "button13";
-            this.button13.Size = new System.Drawing.Size(167, 29);
-            this.button13.TabIndex = 2;
-            this.button13.Text = "Refresh Data from DB";
-            this.button13.UseVisualStyleBackColor = true;
-            // 
-            // textBox4
-            // 
-            this.textBox4.Location = new System.Drawing.Point(63, 13);
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(121, 22);
-            this.textBox4.TabIndex = 3;
-            // 
-            // textBox5
-            // 
-            this.textBox5.Location = new System.Drawing.Point(248, 13);
-            this.textBox5.Name = "textBox5";
-            this.textBox5.Size = new System.Drawing.Size(128, 22);
-            this.textBox5.TabIndex = 5;
-            // 
-            // label4
-            // 
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(194, 16);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(52, 17);
-            this.label4.TabIndex = 4;
-            this.label4.Text = "Salary:";
-            // 
-            // textBox6
-            // 
-            this.textBox6.Location = new System.Drawing.Point(446, 13);
-            this.textBox6.Name = "textBox6";
-            this.textBox6.Size = new System.Drawing.Size(179, 22);
-            this.textBox6.TabIndex = 7;
-            // 
-            // label5
-            // 
-            this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(398, 15);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(46, 17);
-            this.label5.TabIndex = 6;
-            this.label5.Text = "Email:";
-            // 
-            // button14
-            // 
-            this.button14.Location = new System.Drawing.Point(872, 71);
-            this.button14.Name = "button14";
-            this.button14.Size = new System.Drawing.Size(167, 36);
-            this.button14.TabIndex = 8;
-            this.button14.Text = "Delete Selected";
-            this.button14.UseVisualStyleBackColor = true;
+            this.button15.Location = new System.Drawing.Point(148, 39);
+            this.button15.Name = "button15";
+            this.button15.Size = new System.Drawing.Size(129, 33);
+            this.button15.TabIndex = 23;
+            this.button15.Text = "C# stuff";
+            this.button15.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
@@ -424,6 +435,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox textBox4;
         private System.Windows.Forms.Button button14;
+        private System.Windows.Forms.Button button15;
     }
 }
 

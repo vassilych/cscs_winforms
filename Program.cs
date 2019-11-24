@@ -21,7 +21,7 @@ namespace WindowsFormsCSCS
 
             CSCS_SQL.Init();
             CSCS_GUI.TheForm = new Form1();
-            CSCS_GUI.RunScript("../../scripts/wingui.cscs");
+            CSCS_GUI.RunScript("../../scripts/start.cscs");
 
             Application.Run(CSCS_GUI.TheForm);
         }

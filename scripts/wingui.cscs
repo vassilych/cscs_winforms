@@ -1,6 +1,4 @@
-﻿title = "My Great CSCS App";
-
-function button1_Clicked(sender, load) {
+﻿function button1_Clicked(sender, load) {
   if (!refresh) {
     return;
   }
@@ -143,7 +141,7 @@ function button13_Clicked(sender, load) {
   if (!refresh) {
     return;
   }
-  query = "SELECT TOP 15 * FROM Users";
+  query = "SELECT TOP 15 * FROM Users where id <=2";
   results = SQLQuery(query);
   populateListView(results);
 }
@@ -231,14 +229,24 @@ function checkBox1_Clicked(sender, load) {
 	}
 }
 
+function button15_Clicked(sender, load) {
+  if (!refresh) {
+    return;
+  }
+  RemoveWidget(sender);
+}
+
 function populateListView(data) {
   RemoveWidget("tabPage3.listView1");
   AddWidget("tabPage3.listView1", "listview", data[0], x, y + 25, 600, 300);
-  SetWidgetOptions("listView1", "LightSkyBlue", "Black");
+  SetWidgetOptions("listView1", "Green", "White");
   for (i = 1; i < data.Size; i++) {
     AddWidgetData(listView1, data[i]);
+	SetText(answerLabel, data[i][2]);
   }
 }
+
+title = "My Great Nevio App";
 
 answerLabel = "label1";
 width = 90;
@@ -253,10 +261,13 @@ refresh = true;
 SetText("checkBox1", refresh);
 c = 0;
 
-comboItems = {"uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"};
+comboItems = {"zero", "uno", "dos", "tres", "cuatro", "cinco", "seis", "siete", "ocho", "nueve", "diez"};
 AddWidgetData(comboBox1, comboItems);
-SetText("comboBox1", "cinco");
+//SetText("comboBox1", "cinco");
 
-SQLConnecionString("Server=DESKTOP-RKQQ93A\\SQLEXPRESS;Database=CSCS;User Id=sa;Password=sqlpassword;");
+SetText "comboBox1"  "uno" ;
+
+SQLConnectionString("Server=DESKTOP-RKQQ93A\\SQLEXPRESS;Database=CSCS;User Id=sa;Password=sqlpassword;");
 //cols = SQLTableColumns("Users");
 
+globalVar = "cuatro";
